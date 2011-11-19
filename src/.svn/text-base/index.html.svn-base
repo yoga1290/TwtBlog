@@ -1,0 +1,164 @@
+<html>
+    <head>
+        <title>TwtBlog</title>
+        <!--
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.js"></script>
+        -->
+
+        <script src="jquery.js"></script>
+        <style> 
+          .togglebutton {
+            cursor: pointer;
+            border: 1px solid #000;
+            margin: 10px;
+            padding: 10px;
+            display: inline-block;
+            background: -webkit-gradient(
+                linear, left top, left bottom, from(#fff), to(#ccc));
+          }
+          .togglebutton.toggled {
+            color: #fff;
+            background: -webkit-gradient(
+                linear, left top, left bottom, from(#333), to(#999));            
+          }
+        </style> 
+    </head>
+    <body>
+        <p align="center">
+            
+            <button tabindex="0" id="submit" onClick="popup();" ><b><font size="100">#</font></b></button></p>
+        
+        <div  id="pop" style="position: absolute; margin: 0 auto; width: 100%; display: none; " >      
+            <table width="100%" onmouseout="canClose=true;" onmouseover="canclose=false;"><tr><td align="center">
+                <table border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td align="right" valign="bottom" background="west.png"><img src="c1.png"/></td>
+                    <td align="center" valign="bottom" background="north.png"><img src="tip.png"/></td>
+                    <td align="left" valign="bottom" background="east.png"><img src="c2.png"/></td>
+                </tr>
+                <tr>
+                    <td align="right" background="west.png"></td>
+                    <td align="center" background="bg.png">
+                        <div id="tags_div">
+                        </div>
+                    </td>
+                    <td align="left" background="east.png"></td>
+                </tr>
+                <tr>
+                    <td align="right" valign="bottom"> <img src="c3.png"/> </td>
+                    <td align="center" valign="bottom" background="south.png"></td>
+                    <td align="left" valign="bottom" > <img src="c4.png"/> </td>
+                </tr>
+                </table></td></tr></table>
+        </div>
+        <br>
+        <div id="result">Loading...</div>
+        <script>
+            var tags=new Array();
+            var res=new Array();
+            var twt=new Array();
+            
+            //Read tag names
+$(document).ready(function(){
+   $("#result").html("Loading Tags...");
+   
+   $.get("_tags",	function(data){
+       var txt="";
+       tags=data.split("\n");
+       tags.splice(tags.length-1,1);
+       for(i=0;i<tags.length;i++)
+            txt+='<div id="'+tags[i]+'" class="togglebutton" onclick="toggle(\''+tags[i]+'\')">'+tags[i]+'</div>';
+       $("#tags_div").html(txt);
+       $("#result").html("Done:Loading Tags...");
+       $("#pop").hide();
+   });
+});
+          function loadTag(tag)
+          {
+              $("#result").html("Loading Tweets...");
+              var Found;
+              var i,j=0,k=0;
+              //how many elements are toggled..or selected
+              for(i=0;i<tags.length;i++)
+                if(document.getElementById(tags[i]).classList.contains('toggled'))
+                    {
+                        k++;
+                        tag=tags[i]; 
+                        //pick the tag name if it's only 1 selected,otherwise we'll check the others
+                    }
+            
+            //if more than 1,just check if other tags do exists in the current results
+                if(k>1)
+                {
+                    $("#result").html("Searching...");
+                    
+                    //check for each tweet,does it contains all the toggled tags/buttons?!
+                    for(i=0;i<twt.length;i++)
+                    {
+                        Found=true;
+                        for(j=0;j<tags.length;j++)
+                            if(document.getElementById(tags[j]).classList.contains('toggled'))
+                                    Found=Found && (twt[i].toLowerCase().indexOf("#"+tags[j])>-1);
+                          if(!Found)
+                             {res.splice(i,1);twt.splice(i,1);} //Remove remove res[i] & twt[i]
+                    }
+                        draw();
+                }
+                else{
+                    // if it's just 1 tag selected, just load all of it's tagged tweets:
+                   $.get(tag,	function(data){
+                        var tmp=data.split("\n");
+                        tmp.splice(tmp.length-1,1);
+                          twt=new Array();
+                          for(i=0;i<tmp.length/2;i++) res[i]=tmp[i*2];
+                          for(i=0;i<tmp.length/2;i++) twt[i]=tmp[1+i*2];
+                        draw();
+                  });
+                  
+                }
+          }
+         function draw()
+         {
+            var txt="";
+            for(i=0;i<twt.length;i++)
+                txt+=getFrame(twt[i],res[i])+"<br>";
+            $("#result").html(txt);
+            if(txt.length==0) $("#result").html("Not yet!");
+        }
+        function getFrame(txt,re)
+        {
+            txt=txt+'<br><div id="fb-root" ></div><script src="http://connect.facebook.net/en_US/all.js#appId=194978063887428&amp;xfbml=1"><'+'/script><fb:like href="'+re+'" send="true" layout="button_count" width="450" show_faces="true" font=""></fb:like>';
+            txt+='<a href="http://twitter.com/home?status=RE : '+re+'"target="_blank">♺</a></td>';
+            return '<table width="100%"><tr><td align="center"><table border="0" cellpadding="0" cellspacing="0"><tr><td align="right" valign="bottom" background="west.png"><img src="c1.png"/></td><td align="center" valign="bottom" background="north.png"></td><td align="left" valign="bottom" background="east.png"><img src="c2.png"/></td></tr><tr><td align="right" background="west.png"></td><td align="center" background="bg.png"><font color="white">'+txt+'</font></td><td align="left" background="east.png"></td></tr><tr><td align="right" valign="bottom"> <img src="c3.png"/></td><td align="center" valign="bottom" background="south.png"></td><td align="left" valign="bottom" > <img src="c4.png"/> </td></tr></table></td></tr></table>';
+        }
+        function toggle(id) {
+            var b = document.getElementById(id);
+            if (b.classList.contains('toggled'))
+                    b.classList.remove('toggled');
+            else
+                    b.classList.add('toggled');
+            loadTag(id);
+        }
+            
+            
+            
+            var popped=false;
+            
+            function popup()
+            {
+                if(popped)
+                {
+                    $("#submit").html('<b><font size="100">&#149;</font></b>');
+                    $("#pop").slideDown();
+                }
+                else
+                {
+                    $("#submit").html('<b><font size="100">#</font></b>');
+                    $("#pop").slideUp();
+                }
+                popped=!popped;
+            }
+            
+        </script>
+    </body>
+</html>
