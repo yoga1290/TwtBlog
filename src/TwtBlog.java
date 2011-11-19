@@ -270,15 +270,19 @@ class data
             {
                 all="";
                 re=new String[]{};
+                //Read old tweets & hash their urls
                 if(new File(tagnames.get(i).toLowerCase()).exists())
                 {
                     fin=new FileInputStream(tagnames.get(i).toLowerCase());
                     byte res[]=new byte[fin.available()];
                     fin.read(res);
                     fin.close();
-                    all=res.toString();
+                    
+                    all=new String(res);
                     re=all.split("\n");
                 }
+                
+                //Hash the old Tweets urls
                 for(j=0;j<re.length;j+=2)
                     oldRe.add(re[j]);
                 twt=map.get(tagnames.get(i).toLowerCase()).getTwts();
@@ -301,7 +305,7 @@ class data
                     byte res[]=new byte[fin.available()];
                     fin.read(res);
                     fin.close();
-                    all=res.toString();
+                    all=new String(res);
                     old=all.split("\n");
             }
             //Add oldTags with the latest 1s
